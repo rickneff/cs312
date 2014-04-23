@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Playing with the Canvas</title>
+</head>
+
+<body>
+   <canvas id="myCanvas" width="600" height="600" >
+      Your browser does not support the HTML5 canvas tag.
+   </canvas> 
+
+   <script>
+      // TODO: This looks reusable in other projects.
+      // I am always going to need this,
+      // so refactor it into a separate file
+      function setPixel(imageData, x, y, r, g, b, a)
+      {
+         var offset = (y * imageData.width + x) * 4;
+         imageData.data[offset + 0] = r;
+         imageData.data[offset + 1] = g;
+         imageData.data[offset + 2] = b;
+         imageData.data[offset + 3] = a;
+      }
+   
+      // Get the imageData that we can write to by finding
+      // the element and its context.
+      // TODO: This looks reusable in other projects.
+      // I am always going to need this
+      // so refactor it into a separate file
+      var canvas=document.getElementById("myCanvas");
+      var context=canvas.getContext("2d");
+      var imageData = context.createImageData(canvas.width, canvas.height);
+   
+      // Draw the gradient to the imageData using the setPixel function
+      // black in the upper left, red in the lower left,
+      // green in the upper right, and yellow in the lower right.
+      for  (var y = 0; y < imageData.height; y++)
+      {
+         for (var x = 0; x < imageData.width; x++)
+         {
+            setPixel(imageData, x, y, 
+               // red increases as y increases. TODO: improve efficiency
+               y * 255 / (imageData.height-1),
+               // green increases as x increases. TODO: improve efficiency
+               x * 255 / (imageData.width-1), 
+               // blue and alpha stay constant, TODO: unhardcode these values
+               0, 255);
+         }
+      }
+   
+      // Flush the image buffer by writing the imageData back to the canvas
+      // TODO: This looks reusable in other projects.
+      // I am always going to need this,
+      // so refactor it into a separate file.
+
+      // Note that all three of these things share the imageData with context.
+      // We can put them together in a class, maybe one called "RenderBuffer"?
+      context.putImageData(imageData, 0, 0);
+
+   </script>
+</body>
+</html>
