@@ -15,21 +15,25 @@
       // Let RenderBuffer handle creating the imageData and context
       var renderBuffer = new RenderBuffer("myCanvas");
 
+      var b = 0;   // In this simple example, blue stays 0
+      var a = 255; // ... and alpha stays at 255
+      
+      // Loop over y first, then x
       // Draw the gradient to the imageData using the
       // renderBuffer's setPixel function.
       // black in the upper left, red in the lower left,
       // green in the upper right, and yellow in the lower right.
       for  (var y = 0; y < renderBuffer.height; y++)
       {
+         // red increases as y increases. TODO: improve efficiency
+         var r = y * 255 / (renderBuffer.height - 1);
+       
          for (var x = 0; x < renderBuffer.width; x++)
          {
-            renderBuffer.setPixel(x, y, 
-               // red increases as y increases. TODO: improve efficiency
-               y * 255 / (renderBuffer.height - 1),
-               // green increases as x increases. TODO: improve efficiency
-               x * 255 / (renderBuffer.width - 1), 
-               // blue and alpha stay constant, TODO: unhardcode these values
-               0, 255);
+            // green increases as x increases. TODO: improve efficiency
+            var g = x * 255 / (renderBuffer.width - 1);
+       
+            renderBuffer.setPixel(x, y, r, g, b, a);
          }
       }
    
