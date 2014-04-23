@@ -33,8 +33,10 @@
       // green in the upper right, and yellow in the lower right.
       for  (var y = 0; y < renderBuffer.height; y++)
       {
-         // red increases as y increases.
-         r += incRedY;
+         r += incRedY; // red increases as y increases
+
+         // We can create a scanLine for this row and use it over and over
+         var scanLine = renderBuffer.getScanLine(y);
 
          var g = 0; // green starts at 0 for each row and increments each pixel
        
@@ -43,9 +45,8 @@
             // green increases as x increases.
             g += incGreenX;
        
-            // TODO: Can we be more efficient here?
-            // I know setPixel calculates an offset...
-            renderBuffer.setPixel(x, y, r, g, b, a);
+            // Let the scanline set the pixel
+            scanLine.setPixel(x, r, g, b, a);
          }
       }
    
