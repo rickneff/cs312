@@ -19,6 +19,7 @@
       var MAX_COLOR_VAL = 255;
       var b = 0;   // In this simple example, blue stays 0
       var a = MAX_COLOR_VAL; // ... and alpha stays at MAX_COLOR_VAL
+      var r = 0;  // Red starts at 0 and increments each row
       
       // Make these calculation steps one time to avoid excessive increments.
       // Watch for one off errors by subtracting one.
@@ -33,15 +34,17 @@
       for  (var y = 0; y < renderBuffer.height; y++)
       {
          // red increases as y increases.
-         // TODO: Better, but can we avoid the multiply?
-         var r = y * incRedY;
+         r += incRedY;
+
+         var g = 0; // green starts at 0 for each row and increments each pixel
        
          for (var x = 0; x < renderBuffer.width; x++)
          {
             // green increases as x increases.
-            // TODO: Better, but can we avoid the multiply?
-            var g = x * incGreenX;
+            g += incGreenX;
        
+            // TODO: Can we be more efficient here?
+            // I know setPixel calculates an offset...
             renderBuffer.setPixel(x, y, r, g, b, a);
          }
       }
