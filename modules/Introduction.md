@@ -7,4 +7,4 @@ Introductory Module
 
 * [Lesson 01 - Introduction to Graphics](Introduction/lesson01.md)
 * [Lesson 02 - Debugging](Introduction/lesson02.md)
-* [Lesson 02 - Clean Code](Introduction/lesson03.md)
+* [Lesson 03 - Clean Code](Introduction/lesson03.md)
