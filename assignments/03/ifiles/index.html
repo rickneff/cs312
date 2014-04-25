@@ -8,18 +8,22 @@
    <canvas id="myCanvas" width="500" height="100" >
       Get a Real Browser that supports HTML5
    </canvas>
-   <script language="JavaScript" src="SceneDrawer.js"></script>
-   <script>
-     var c = document.getElementById("myCanvas");
-     var ctx = c.getContext("2d");
-     var imageData = ctx.createImageData(c.width, c.height);
 
-     var upperLeft = color(1, 0, 1, 1);
-     var upperRight = color(1, 1, 0, 1);
-     var lowerLeft = color(0, 0, 0.5, 1);
-     var lowerRight = color(0, 0, 0, 1);
-     drawGradient(imageData, upperLeft, upperRight, lowerLeft, lowerRight);
-     ctx.putImageData(imageData, 0, 0);
-   </script>
+   <script language="JavaScript" src="RenderBuffer.js"></script>   
+   <script language="JavaScript" src="SceneDrawer.js"></script>
+
+   <script>
+      // Let RenderBuffer handle creating the imageData and context
+      var renderBuffer = new RenderBuffer("myCanvas");
+
+      var upperLeft = color(1, 0, 1, 1);
+      var upperRight = color(1, 1, 0, 1);
+      var lowerLeft = color(0, 0, 0.5, 1);
+      var lowerRight = color(0, 0, 0, 1);
+
+      drawGradient(renderBuffer, upperLeft, upperRight, lowerLeft, lowerRight);
+
+      renderBuffer.flush();
+  </script>
 </body>
 </html>
