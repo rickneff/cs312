@@ -1,3 +1,5 @@
+(require 'cl)
+
 (defun scalar* (scalar vector)
   (map 'list (lambda (x) (* x scalar)) vector))
 
