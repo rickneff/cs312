@@ -15,29 +15,21 @@ Introduction to Linear Algebra
   * a matrix product can represent functions being applied to lists of inputs producing lists of outputs.
 
 ```
-    +-  -+       +-  -+        +-  -+
     |  1 |       |  3 |        |  2 |
 3 * |  4 | + 2 * | -1 | + -1 * |  5 |    is equivalent to 3A + 2B + (-1)C where A, B and C are vectors.
     | -1 |       |  9 |        |  6 |
-    +-  -+       +-  -+        +-  -+
 
-    +-  -+   +-  -+   +-  -+
     |  3 |   |  6 |   | -2 |
   = | 12 | + | -2 | + | -5 |
     | -3 |   | 18 |   | -6 |
-    +-  -+   +-  -+   +-  -+
 
-    +-  -+
     |  7 |
   = |  5 |
     |  9 |
-    +-  -+
 
-             +-          -+
              |  1   4  -1 |
 [3, 2, -1] * |  3  -1   9 |
              |  2   5   6 |
-             +-          -+
 
            = [7, 5, 9]
 ```
