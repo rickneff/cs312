@@ -33,4 +33,3 @@ Introduction to Linear Algebra
 
            = [7, 5, 9]
 ```
-
