@@ -11,12 +11,14 @@ Lesson - Rotations
   * order is important, see [mnemonic and cross visualization](http://en.wikipedia.org/wiki/Cross_product)
     * in general, of course, matrix multiplication is **_NOT_** commutative
     * however, in the following special cases, commutativity holds (i.e., M1 * M2 = M2 * M1)
+
       | M1                   | M2        |
       |----------------------|-----------|
       | Translate            | Translate |
       | Scale                | Scale     |
       | Rotate               | Rotate    |
       | Scale (with Sx = Sy) | Rotate    |
+
 * Building a Rotational Matrix
   * Forward (or Out)
   * Up
