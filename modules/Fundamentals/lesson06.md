@@ -1,8 +1,9 @@
 Lesson - Rotations
-================
+==================
 
 * Discuss Euler Rotations again as a review
-* The rows and columns of a rotational matrix are "Ortho Normal"
+  * See [computing Euler angles from a rotation matrix](http://www.soi.city.ac.uk/~sbbh653/publications/euler.pdf)
+* The rows and columns of a rotation matrix are "Ortho Normal" (orthogonal + normal)
 * Normalizing Vectors
 * Vector Dot Product, shows angle between 2 unit vectors
   * watch [just the beginning](http://www.youtube.com/watch?v=98C7iv8OcnI), how related to Matrix Multiplication?
@@ -23,9 +24,9 @@ Lesson - Rotations
   * Forward (or Out)
   * Up
   * Right
-* Building a Rotational Matrix by having [a unit vector and an angle](http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle)
+* Building a rotation matrix by having [a unit vector and an angle](http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle)
 * "Parenting" = the order that things happen in. Which one should happen first?
-* Multiplying two rotational matrices together make a new matrix that is also Ortho Normal, a rotational matrix.
+* Multiplying two rotation matrices together make a new matrix that is also orthonormal, a rotation matrix.
 * Watch the video about [Euler Rotations and Gimbal Lock](http://www.youtube.com/watch?v=zc8b2Jo7mno)
 * Read [article on rotations](http://www.fastgraph.com/makegames/3drotation/)
 * Read [article on quaternions](http://www.cprogramming.com/tutorial/3d/quaternions.html)

@@ -49,3 +49,11 @@
 
 (defun colmajor (matrix)
   (square-bracket matrix " " 'colify))
+
+(setq pi 3.14159265358979)
+
+(defun radians (x)
+  (/ (* pi x) 180.0))
+
+(defun degrees (x)
+  (* (/ x pi) 180.0))
