@@ -7,5 +7,7 @@
 * [Lesson 05 - Composite Matrix](Fundamentals/lesson05.md)
 * [Lesson 06 - Rotations](Fundamentals/lesson06.md)
 * [Lesson 07 - Normalized Device Coordinates (NDC)](Fundamentals/lesson07.md)
+* [Lesson 08 - Basic Shaders](Fundamentals/lesson08.md)
+* [Lesson 09 - Vertex Shader, Matrix Mult and Orthographic Projections](Fundamentals/lesson09.md)
 
 [Home](../README.md)

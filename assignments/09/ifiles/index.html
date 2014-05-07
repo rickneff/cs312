@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Matrix Vertex Shader</title>
+</head>
+
+<body bgcolor="black">
+   <canvas id="myCanvas" width="5" height="5" style="border-style:solid;border-width:1px;border-color:white" >
+      Get a Real Browser that supports HTML5
+   </canvas>
+
+   <script language="JavaScript" src="IdentityShaders.js"></script>
+   <script language="JavaScript" src="MatrixMath.js"></script>
+   <script language="JavaScript" src="MatrixTransformVertShader.js"></script>
+   <script language="JavaScript" src="RenderBuffer.js"></script>
+   <script language="JavaScript" src="RenderEngine.js"></script>
+   
+   <script>
+
+      var renderBuffer = new RenderBuffer("myCanvas");
+      
+      // Hardcode the list of vertices with the position at 0 and the color at 1
+      var positionIdx = 0;
+      var colorIdx = 1;
+      var points =
+      [
+         [[-1.0, +1.0, 0, 1], [1.0, 0.0, 0.0, 1.0]], // upper left red
+         [[+1.0, +1.0, 0, 1], [0.0, 1.0, 0.0, 1.0]], // upper right green
+         [[-1.0, -1.0, 0, 1], [0.0, 1.0, 1.0, 1.0]], // lower left cyan
+         [[+1.0, -1.0, 0, 1], [1.0, 1.0, 0.0, 1.0]], // lower right yellow
+         [[ 0.0,  0.0, 0, 1], [1.0, 1.0, 1.0, 1.0]]  // middle white
+      ];
+
+      // The render engine is used to draw primitives
+      var renderEngine = new RenderEngine(renderBuffer);
+      
+      var idMatrix =
+      [
+         1, 0, 0, 0,
+         0, 1, 0, 0,
+         0, 0, 1, 0,
+         0, 0, 0, 1
+      ];
+
+      var vertexShader = new MatrixTransformShader(positionIdx, idMatrix);
+      var fragmentShader = new BasicColorFragmentShader(colorIdx);
+      
+      // Draw the list of points with the shaders
+      // NOTE: NO .main for fragmentShader
+      renderEngine.drawPoints(points, vertexShader.main, fragmentShader);
+      
+      renderBuffer.flush();
+
+   </script>
+</body>
+</html>
