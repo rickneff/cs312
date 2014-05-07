@@ -45,9 +45,8 @@
       var vertexShader = new MatrixTransformShader(positionIdx, idMatrix);
       var fragmentShader = new BasicColorFragmentShader(colorIdx);
       
-      // Draw the list of points with the shaders
-      // NOTE: NO .main for fragmentShader
-      renderEngine.drawPoints(points, vertexShader.main, fragmentShader);
+      // Draw the list of points with the two shaders' main functions
+      renderEngine.drawPoints(points, vertexShader.main, fragmentShader.main);
       
       renderBuffer.flush();
 
