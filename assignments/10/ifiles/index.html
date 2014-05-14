@@ -43,7 +43,7 @@
          
          // Make a projection matrix based on the aspect ratio
          var aspectRatio = renderBuffer.width / renderBuffer.height;
-         var projMatrix = OrthoGraphicProjectionAspect(aspectRatio);
+         var projMatrix = OrthoGraphicProjectionWithAspectRatio(aspectRatio);
          var vertexShader = new MatrixTransformShader(positionIdx, projMatrix);
          
          // And still a simple fragment shader
