@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Matrix Vertex Shader</title>
+</head>
+
+<body bgcolor="black">
+   <canvas id="canvas1" width="5" height="7" style="border-style:solid;border-width:1px;border-color:white" >
+      Get a Real Browser that supports HTML5
+   </canvas></br>
+   <canvas id="canvas2" width="7" height="5" style="border-style:solid;border-width:1px;border-color:white" >
+      Get a Real Browser that supports HTML5
+   </canvas></br>
+   <canvas id="canvas3" width="7" height="5" style="border-style:solid;border-width:1px;border-color:white" >
+      Get a Real Browser that supports HTML5
+   </canvas></br>
+
+   <script language="JavaScript" src="../../09/xfiles/IdentityShaders.js"></script>
+   <script language="JavaScript" src="../../09/xfiles/MatrixMath.js"></script>
+   <script language="JavaScript" src="../../09/xfiles/MatrixTransformVertShader.js"></script>
+   <script language="JavaScript" src="../../09/xfiles/RenderBuffer.js"></script>
+   <script language="JavaScript" src="../../09/xfiles/RenderEngine.js"></script>
+   <script language="JavaScript" src="ProjectionMatrix.js"></script>
+   
+   <script>
+      drawPointsWithAspectRatio = function(canvasName)
+      {
+         var renderBuffer = new RenderBuffer(canvasName);
+         
+         // Hardcode the list of vertices with the position at 0 and the color at 1
+         var positionIdx = 0;
+         var colorIdx = 1;
+         var points = [
+            [[-1.0, +1.0, 0, 1], [1.0, 0.0, 0.0, 1.0]], // upper left red
+            [[+1.0, +1.0, 0, 1], [0.0, 1.0, 0.0, 1.0]], // upper right green
+            [[-1.0, -1.0, 0, 1], [0.0, 1.0, 1.0, 1.0]], // lower left cyan
+            [[+1.0, -1.0, 0, 1], [1.0, 1.0, 0.0, 1.0]], // lower right yellow
+            [[ 0.0,  0.0, 0, 1], [1.0, 1.0, 1.0, 1.0]]  // middle white
+         ];
+         
+         // The render engine is used to draw primitives
+         var renderEngine = new RenderEngine(renderBuffer);
+         
+         // Make a projection matrix based on the aspect ratio
+         var aspectRatio = renderBuffer.width / renderBuffer.height;
+         var projMatrix = OrthoGraphicProjectionWithAspectRatio(aspectRatio);
+         var vertexShader = new MatrixTransformShader(positionIdx, projMatrix);
+         
+         // And still a simple fragment shader
+         var fragmentShader = new BasicColorFragmentShader(colorIdx);
+         
+         // Draw the list of points with the two shaders' main functions
+         renderEngine.drawPoints(points, vertexShader.main, fragmentShader.main);
+         
+         renderBuffer.flush();
+      };
+      drawPointsWithOrtho = function(canvasName)
+      {
+         var renderBuffer = new RenderBuffer(canvasName);
+         
+         var positionIdx = 0;
+         var colorIdx = 1;
+         var points = [
+            [[+5.5, +4.0, 0, 1], [1.0, 0.0, 0.0, 1.0]], // Top red
+            [[+5.5, -1.0, 0, 1], [0.0, 1.0, 0.0, 1.0]], // bottom green
+            [[+2.0, +1.5, 0, 1], [0.0, 1.0, 1.0, 1.0]], // left cyan
+            [[+9.0, +1.5, 0, 1], [1.0, 1.0, 0.0, 1.0]], // right yellow
+            [[+5.5, +1.5, 0, 1], [1.0, 1.0, 1.0, 1.0]]  // middle white
+         ];
+         
+         // The render engine is used to draw primitives
+         var renderEngine = new RenderEngine(renderBuffer);
+         
+         // Make a projection matrix based on x from 2 to 9 and y from -1 to 4
+         var projMatrix = OrthoGraphicProjection(2, 9, 4, -1, 2, 5); // We don't care about z yet
+         var vertexShader = new MatrixTransformShader(positionIdx, projMatrix);
+         
+         // And still a simple fragment shader
+         var fragmentShader = new BasicColorFragmentShader(colorIdx);
+         
+         // Draw the list of points with the two shaders' main functions
+         renderEngine.drawPoints(points, vertexShader.main, fragmentShader.main);
+         
+         renderBuffer.flush();
+      };
+      
+      // Do the deeds, draw in the 3 boxes
+      drawPointsWithAspectRatio("canvas1");
+      drawPointsWithAspectRatio("canvas2");
+      drawPointsWithOrtho("canvas3");
+
+   </script>
+</body>
+</html>
