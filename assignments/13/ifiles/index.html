@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Draw Triangles Part 2</title>
+</head>
+
+<body bgcolor="black">
+   <canvas id="canvas1" width="500" height="300" style="border-style:solid;border-width:1px;border-color:white" >
+      Get a Real Browser that supports HTML5
+   </canvas></br>
+   
+   <script language="JavaScript" src="MatrixMath.js"></script>
+   <script language="JavaScript" src="SmoothShaders.js"></script>
+   <script language="JavaScript" src="RenderBuffer.js"></script>
+   <script language="JavaScript" src="Line.js"></script>
+   <script language="JavaScript" src="RenderEngine.js"></script>
+   <script language="JavaScript" src="ProjectionMatrix.js"></script>
+   
+   <script>
+      var renderBuffer = new RenderBuffer("canvas1");
+         
+      // Hardcode the list of vertices with the position at 0 and the color at 1
+      var positionIdx = 0;
+      var colorIdx = 1;
+      var verts = [
+         [[-1.0, +1.0, 0, 1], [1.0, 0.0, 0.0, 1.0]], // upper left red
+         [[+1.0,  0.0, 0, 1], [0.0, 1.0, 0.0, 1.0]], // middle right green
+         [[ 0.0, -1.0, 0, 1], [0.0, 1.0, 1.0, 1.0]], // lower middle cyan
+         [[-1.0, -1.0, 0, 1], [0.0, 0.0, 1.0, 1.0]]  // lower left blue
+         // (will not be seen because it is in the backwards triangle)
+      ];
+
+      // clockwise winding order
+      // The first is visible, (clockwise), the second is NOT. Then look at the ordering
+      var indexListTris = [0, 1, 2, 0, 3, 2];
+         
+      // The render engine is used to draw primitives
+      var renderEngine = new RenderEngine(renderBuffer);
+         
+      // Make a projection matrix based on the aspect ratio
+      var aspectRatio = renderBuffer.width / renderBuffer.height;
+      var projMatrix = OrthoGraphicProjectionWithAspectRatio(aspectRatio);
+         
+      // Make our smooth color shaders
+      var vertexShader = new MatrixSmoothVertShader(positionIdx, colorIdx, projMatrix);
+      var fragmentShader = new SmoothColorFragShader();
+         
+      // Draw our list of points with the two shaders
+      // (NOTE: main functions are NOT passed this time!)
+      renderEngine.drawTriangles(verts, indexListTris,
+                                 clockwiseWinding,
+                                 vertexShader, fragmentShader);
+
+      // Remember to test and make sure you can still draw lines and points.
+         
+      // Flush it to make sure we draw
+      renderBuffer.flush();
+
+   </script>
+</body>
+</html>

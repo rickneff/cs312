@@ -1,0 +1,82 @@
+Draw a Line
+
+  Given two points P1 and P2, and a fragmentShader
+
+  Encapsulate these 3 in a "Line" object
+
+  GET the maxDist for that line (how far apart are the endpoints?)
+
+  IF maxDist > 1
+
+    LOOP maxDist - 1 times
+
+       // increment the point on the line,
+
+       // then set the pixel.
+
+   // Draw the 2 end-points of the line --- in (almost) real code
+
+   setPixel(P1[0][0], P1[0][1], fragmentShader.main(P1[1]))
+
+   setPixel(P2[0][0], P2[0][1], fragmentShader.main(P2[1]))
+
+Draw a Triangle
+
+   Given a vertArray and a fragmentShader
+
+   SORT the triangle in vertArray, so that
+
+      vertArray[0] is the low y value
+
+      vertArray[1] is the middle y value
+
+      vertArray[2] is the high y value
+
+   lineL = new Line(vertArray[0], vertArray[2], fragmentShader); 
+
+   lineS = new Line(vertArray[0], vertArray[1], fragmentShader);
+
+   maxDistL = lineL.getMaxDist()
+
+   maxDist1 = lineS.getMaxDist()
+
+   maxDist2 = max(abs(vertArray[1][0][0] - vertArray[2][0][0]),
+                  abs(vertArray[1][0][1] - vertArray[2][0][1]))
+
+   IF maxDistL > 1 AND maxDist1 > 1 AND maxDist2 > 1
+
+      // loop through pixels of the large line
+
+      LOOP maxDistL times
+
+         SET pointL = the next point on lineL
+
+         // loop through pixels of the small line until the y value of the 
+         // large line is reached            
+
+         WHILE the lineS y value < the lineL y value
+
+            IF the end of the first small line is reached,
+
+               // switch to second small line (between mid and high)
+
+	       lineS = new Line(...)
+
+            GET the next point (pointS) from the small line (lineS)
+
+            pointS = lineS.nextPoint()
+
+            setPixel(pointS[0][0], pointS[0][1], pointS[1])
+
+         // Take the two points found (with equal y values) on the screen 
+
+         // Display them using drawLine(pointL, pointS, fragmentShader)
+
+   // Display the three vertices of the triangle using setPixel()
+
+   setPixel(vertArray[0][0][0], vertArray[0][0][1], fragmentShader.main(vertArray[0][1]))
+
+   setPixel(vertArray[1][0][0], vertArray[1][0][1], fragmentShader.main(vertArray[1][1]))
+
+   setPixel(vertArray[2][0][0], vertArray[2][0][1], fragmentShader.main(vertArray[2][1]))
+   
