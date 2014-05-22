@@ -14,7 +14,7 @@ Draw a Line
 
        // then set the pixel.
 
-   // Draw the 2 end-points of the line --- in (almost) real code
+   // Draw the 2 end-points of the line --- in (almost) real code:
 
    setPixel(P1[0][0], P1[0][1], fragmentShader.main(P1[1]))
 
@@ -26,11 +26,11 @@ Draw a Triangle
 
    SORT the triangle in vertArray, so that
 
-      vertArray[0] is the low y value
+      vertArray[0] holds the point with the low y value (in screen coordinates)
 
-      vertArray[1] is the middle y value
+      vertArray[1] holds the point with the middle y value
 
-      vertArray[2] is the high y value
+      vertArray[2] holds the point with the high y value
 
    lineL = new Line(vertArray[0], vertArray[2], fragmentShader); 
 
@@ -58,7 +58,7 @@ Draw a Triangle
 
             IF the end of the first small line is reached,
 
-               // switch to second small line (between mid and high)
+               // switch to second small line (whose endpoints are mid and high)
 
 	       lineS = new Line(...)
 
@@ -72,7 +72,7 @@ Draw a Triangle
 
          // Display them using drawLine(pointL, pointS, fragmentShader)
 
-   // Display the three vertices of the triangle using setPixel()
+   // Display the three vertices of the triangle using setPixel():
 
    setPixel(vertArray[0][0][0], vertArray[0][0][1], fragmentShader.main(vertArray[0][1]))
 
