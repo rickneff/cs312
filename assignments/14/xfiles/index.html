@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Perspective Projection Part 1</title>
+</head>
+
+<body bgcolor="black">
+   <canvas id="canvas1" width="500" height="300" style="border-style:solid;border-width:1px;border-color:white" >
+      Get a Real Browser that supports HTML5
+   </canvas></br>
+   
+   <script language="JavaScript" src="../../12/xfiles/MatrixMath.js"></script>
+   <script language="JavaScript" src="../../11/xfiles/SmoothShaders.js"></script>
+   <script language="JavaScript" src="../../12/xfiles/RenderBuffer.js"></script>
+   <script language="JavaScript" src="../../13/ifiles/Line.js"></script>
+   <script language="JavaScript" src="RenderEngine.js"></script>
+   <script language="JavaScript" src="ProjectionMatrix.js"></script>
+   
+   <script>
+      var renderBuffer = new RenderBuffer("canvas1");
+         
+      // Make a "walkway"
+      var positionIdx = 0;
+      var colorIdx = 1;
+      var verts = [
+         [[-1, -1,  -5, 1], [0, 1, 0, 1]], // lower left near green
+         [[+1, -1,  -5, 1], [0, 1, 0, 1]], // lower right near green
+         [[-1, -1, -50, 1], [1, 1, 0, 1]], // lower left far yellow
+         [[+1, -1, -50, 1], [1, 1, 0, 1]]  // lower right far yellow
+      ];
+
+      // clockwise winding order
+      var indexListTris = [0, 2, 1, 1, 2, 3];
+         
+      // The render engine is used to draw primitives
+      var renderEngine = new RenderEngine(renderBuffer);
+         
+      // Make a projection matrix based on the aspect ratio
+      var aspectRatio = renderBuffer.width / renderBuffer.height;
+
+      // Note that the near and far are positive here
+      var projMatrix = PerspectiveProjectionWithAspectRatio(aspectRatio, 30, 1, 100);
+         
+      // Make our smooth color shaders
+      var vertexShader = new MatrixSmoothVertShader(positionIdx, colorIdx, projMatrix);
+      var fragmentShader = new SmoothColorFragShader();
+         
+      // Draw our list of points with the two shaders
+      renderEngine.drawTriangles(verts, indexListTris,
+                                 clockwiseWinding,
+                                 vertexShader, fragmentShader);
+
+      // Remember to test and make sure you can still draw lines and points.
+         
+      // Flush it to make sure we draw
+      renderBuffer.flush();
+
+   </script>
+</body>
+</html>
