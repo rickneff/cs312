@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Perspective Projection Part 2</title>
+</head>
+
+<body bgcolor="black">
+   <canvas id="canvas1" width="500" height="300" style="border-style:solid;border-width:1px;border-color:white" >
+      Get a Real Browser that supports HTML5
+   </canvas></br>
+   <canvas id="canvas2" width="500" height="300" style="border-style:solid;border-width:1px;border-color:white" >
+      Get a Real Browser that supports HTML5
+   </canvas></br>
+   
+   <script language="JavaScript" src="MatrixMath.js"></script>
+   <script language="JavaScript" src="SmoothShaders.js"></script>
+   <script language="JavaScript" src="RenderBuffer.js"></script>
+   <script language="JavaScript" src="RenderEngine.js"></script>
+   <script language="JavaScript" src="ProjectionMatrix.js"></script>
+   
+   <script>
+      var renderBuffer = new RenderBuffer("canvas1");
+         
+      // Make a "walkway"
+      var positionIdx = 0;
+      var colorIdx = 1;
+      var verts = [
+         [[-1, -1,  -5, 1], [0, 1, 0, 1]], // lower left near green
+         [[+1, -1,  -5, 1], [0, 1, 0, 1]], // lower right near green
+         [[-1, -1, -50, 1], [1, 1, 0, 1]], // lower left far yellow
+         [[+1, -1, -50, 1], [1, 1, 0, 1]], // lower right far yellow
+         // Line verts
+         [[-1, +1,  -5, 1], [0, 1, 0, 1]], // upper left near green
+         [[+1, +1,  -5, 1], [0, 0, 1, 1]], // upper right near blue
+         [[-1, +1, -50, 1], [1, 0, 0, 1]], // upper left far red
+         [[+1, +1, -50, 1], [0, 1, 1, 1]]  // upper right far cyan
+      ];
+
+      // clockwise winding order
+      var indexListTris = [0, 2, 1, 1, 2, 3, 0, 4, 2, 4, 6, 2];
+      var indexListLines = [4, 6, 5, 4, 6, 7, 7, 5, 4, 0, 5, 1, 6, 2, 7, 3];
+
+      // Render buffers for both
+      var renderBuffer1 = new RenderBuffer("canvas1");
+      var renderBuffer2 = new RenderBuffer("canvas2");
+         
+      // Make a projection matrix based on the aspect ratio
+      var aspectRatio = renderBuffer1.width / renderBuffer1.height;
+
+      // Note that the near and far are positive here
+      var projMatrix = PerspectiveProjectionWithAspectRatio(aspectRatio, 30, 1, 100);
+         
+      // Make our smooth color shaders
+      var vertexShader = new MatrixSmoothVertShader(positionIdx, colorIdx, projMatrix);
+      var fragmentShader = new SmoothColorFragShader();
+         
+      // Draw our list of points with the two shaders
+      var renderEngine1 = new RenderEngine(renderBuffer1);
+      renderEngine1.drawTriangles(verts, indexListTris,
+                                  clockwiseWinding,
+                                  vertexShader, fragmentShader);
+      renderEngine1.drawLines(verts, indexListLines,
+                              vertexShader, fragmentShader);
+      renderBuffer1.flush();
+
+      // Try it again with flat verts
+      var flatVerts = [
+         [[-1/5,  -1/5,  -1, 1], [0, 1, 0, 1]], 
+         [[+1/5,  -1/5,  -1, 1], [0, 1, 0, 1]], 
+         [[-1/50, -1/50, -1, 1], [1, 0, 0, 1]], 
+         [[+1/50, -1/50, -1, 1], [1, 0, 0, 1]],
+         // Line verts
+         [[-1/5,  +1/5,  -1, 1], [0, 1, 0, 1]], 
+         [[+1/5,  +1/5,  -1, 1], [0, 0, 1, 1]], 
+         [[-1/50, +1/50, -1, 1], [1, 0, 0, 1]], 
+         [[+1/50, +1/50, -1, 1], [0, 1, 1, 1]] 
+      ];
+                        
+      // Draw our list of points with the shaders for a flattened triangle
+      var renderEngine2 = new RenderEngine(renderBuffer2);
+      renderEngine2.drawTriangles(flatVerts, indexListTris,
+                                  clockwiseWinding,
+                                  vertexShader, fragmentShader);
+      renderEngine2.drawLines(flatVerts, indexListLines,
+                              vertexShader, fragmentShader);
+      renderBuffer2.flush();
+
+   </script>
+</body>
+</html>
