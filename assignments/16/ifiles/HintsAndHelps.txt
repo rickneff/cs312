@@ -1,0 +1,134 @@
+
+First, some useful facts about the vector dot product:
+
+Let v1 and v2 be unit vectors, so the length of each is 1.
+
+Then their dot product will compute the cosine of the angle between them.
+
+That is, vectorDot(vectorNormalize(v1), vectorNormalize(v2)) is equivalent to
+
+     Math.cos(theta)
+
+So if v1 and v2 are unit vectors (i.e., they have been Normalized),
+without knowing the value of theta or doing an expensive cosine function call,
+the dot product can tell us the following things:
+
+If the dot product   then the angle between
+of v1 and v2 is      v1 and v2 is
+
+      > 0             < 90 degrees
+
+      < 0             > 90 degrees
+
+     == 0               90 degrees (v1 and v2 are orthogonal)
+
+     == 1                0 degrees (v1 and v2 point in the same direction and are parallel)
+
+     == -1             180 degrees (v1 and v2 point in opposite directions and are parallel)
+
+Caution:
+
+Floating point imprecision may make two orthogonal vectors'
+dot product NOT exactly zero, but zero plus some amount of floating point error.
+
+Ask what amount of error is acceptable in your code,
+and take that into account when you do your comparisons.
+
+----------------------------------------------------------------------------
+
+Now, what are the six clip planes?
+
+   near far left right bottom top
+
+How do you define a plane?
+
+   A Point (position) and a Normal Vector (orthogonal to the plane).
+
+   The Normal shows the direction, to distinguish inside from outside.
+
+   Point          Normal             Description
+
+[0, 0, -1, 0]   [0, 0, +1, 0]     near clip plane pointing away
+
+[0, 0, +1, 0]   [0, 0, -1, 0]     far clip plane pointing back
+
+[0, 0, 0, 0]   [+1,  0, 0, 1]     left clip
+
+[0, 0, 0, 0]   [-1,  0, 0, 1]     right clip
+
+[0, 0, 0, 0]   [ 0, +1, 0, 1]     bottom clip
+
+[0, 0, 0, 0]   [ 0, -1, 0, 1]     top clip
+
+Why do the other 4 all intersect at 0, 0, 0, 0 in 4 space, with a w of 0?
+
+Let P be the point, and N be the normal for a plane.
+
+How do we determine if point A is in the plane defined by P and N?
+
+   vectorDot(vectorSubtract(A, P), N) returns
+
+   > 0 for IN,
+   < 0 for OUT,
+   = 0 for ON the plane.
+
+How do we determine where a line between points A and B intersects the
+plane (first assuring that A and B are not the same and are not BOTH
+on the plane)?
+                                A
+                                 \
+                                  \
+                           ________\_____________________
+                          /         \                   /
+                         /           \                 /
+                        /             X               /
+                       /                             /
+                      /_____________________________/
+                                         \
+                                          \
+                                           \
+                                            B
+The fraction
+
+   vectorDot(vectorSubtract(P, A), N) / vectorDot(vectorSubtract(B, A), N)
+
+gives us the fraction of the distance between A and B to go to find X,
+the point of intersection. This same fraction works for interpolating
+colors.
+
+RenderEngine needs a function, clipLineToPlane, that takes
+a pair of points and a plane, determines the point of intersection,
+and returns true if such a point is found (or if not but the line
+is entirely inside the clip plane) meaning SOME part of the line
+(or ALL of it) should be drawn. The side effect of having found
+an intersection point X is to replace the outside point with X.
+If none of the line is inside the plane, the function returns false.
+
+The clipLineToPlane function is called by another function called
+clipLine, which takes two points and a fragment shader. The call
+to clipLineToPlane is made up to six times (one for each clip plane)
+but if any call returns false, the clipLine function returns without
+further ado (the line is entirely outside the view space). If it
+passes the short-circuiting gauntlet that loops through the six clip
+planes, it will do the ndc2screen conversion on the clipped line's
+endpoints and then pass those converted points to drawLine (along
+with the fragment shader).
+
+The RenderEngine drawLines function that takes a vertex list, an index
+list, a vertex shader, and a fragment shader, mostly works as before:
+It processes the vertex list with the vertex shader to translate them
+all, then loops through the index list in pairs to draw the lines.
+But in the loop it calls clipLine instead of drawLine as before.
+
+The RenderEngine drawPoint function (called by drawPoints) works
+mostly as before, except it also loops through the six clip planes,
+calls with each plane its pointInPlane function with the NDC point
+(passed into drawPoint). If pointInPlane ever returns a negative
+number the point is outside that plane and drawPoint returns without
+further ado. If the point passes the six-plane gauntlet it is inside
+the view space and should be drawn as before (convert from NDC to
+screen coordinates and call setPixel).
+
+(Don't forget to modify nds2screen to NOT do the perspective divide on
+the Z coordinate, as the perspective projection matrix should have
+done that already.)

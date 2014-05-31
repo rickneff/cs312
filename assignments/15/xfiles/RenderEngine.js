@@ -1,5 +1,3 @@
-// This file now depends on the lerp function defined in MatrixMath.js
-
 function RenderEngine(renderBuffer)
 {
    this.renderBuffer = renderBuffer;
@@ -29,265 +27,26 @@ RenderEngine.prototype.drawPoints = function(verts,
    }
 }
 
-function TwFinder(w1, w2)
+RenderEngine.prototype.drawLine = function(P1, P2, fragmentShader)
 {
-   if (w1 != w2)
-   {
-      var iW1 = 1 / w1;
-      var iW2 = 1 / w2;
-      var iDW = 1 / (w2 - w1);
-      
-      this.findT = function(t)
-         {
-            var w = 1 / lerp(iW1, iW2, t);
-            // Return an array with the new t AND w value
-            return [(w - w1) * iDW, w];
-         }
-   }
-   else
-   {
-      this.findT = function(t)
-         {
-            return [t, w1];
-         }
-   }
-}
+   var point;
+   var line = new Line(P1, P2, fragmentShader);
+   var maxDist = line.getMaxDist();
 
-RenderEngine.prototype.drawLine = function(P1, P2, fragmentShader, storeVals)
-{
-   // Decide how far we want to loop by taking the max distance along x and y locations
-   // Remember, screen coordinates are held in [0] and varying values are held in [1]
-   var maxDist = Math.max(Math.abs(P1[0][0] - P2[0][0]),
-                          Math.abs(P1[0][1] - P2[0][1]));
-
-   // Draw the first point
-   var varsP1 = fragmentShader.main(P1[1]);
-   this.renderBuffer.setPixel(P1[0][0], P1[0][1], varsP1);
-   
-   // Keep this value around for triangle drawing
-   // Based on the Y position, store the x position,
-   // the varying vals, and the w value.
-   if (storeVals != null)
-   {
-      storeVals[P1[0][1]] = [P1[0][0], varsP1, P1[0][3]];
-   }
-   
-   // Note that maxDist should be an integer value,
-   // a distance between the rounded P1 and P2 screen positions.
-   // Watch for them being on top of each other by checking the value
    if (maxDist > 1)
    {
-      // Keep track of something we can increment for t
-      var incT = 1 / maxDist;
-      var t = 0;
-      
-      // Use this little tool for finding a special t for w
-      var twFind = new TwFinder(P1[0][3], P2[0][3]);  
-      
       for (var i = 1; i < maxDist; i++)
       {
-         // Smoothly interpolate all values based on the t value 
-         t += incT;
-         
-         // Adjust t for depth for the color interpolations
-         var Tw = twFind.findT(t);
-         
-         // X and Y values are rounded so we always use integers
-         // Use the regular t for the X and Y positions
-         var x = Math.round(lerp(P1[0][0], P2[0][0], t));
-         var y = Math.round(lerp(P1[0][1], P2[0][1], t));
-         
-         // Find the varying values
-         var varyingVars = new Array();
-         for (var j = 0; j < P1[1].length; j++)
-         {
-            varyingVars[j] = lerp(P1[1][j], P2[1][j], Tw[0]);
-         }
+         // increment the point on the line, then set the pixel
+         point = line.nextPoint();
 
-         // Get color from the fragment shader with these interpolated values
-         var color = fragmentShader.main(varyingVars);
-         
-         // Finally set the pixel
-         this.renderBuffer.setPixel(x, y, varyingVars);
-
-         // Keep this value around for triangle drawing,
-         // the current x, varying values, and w value
-         // (from our calculated Tw)
-         if (storeVals != null)
-         {
-            storeVals[y] = [x, varyingVars, Tw[1]];
-         }
+         this.renderBuffer.setPixel(point[0][0], point[0][1], point[1]);
       }
    }
    
-   // Draw the end-point
-   var varsP2 = fragmentShader.main(P2[1]);
-   this.renderBuffer.setPixel(P2[0][0], P2[0][1], varsP2);
-   
-   // Keep this value around for triangle drawing
-   // Based on the Y position, store the x position,
-   // the varying vals, and the w value.
-   if (storeVals != null)
-   {
-      storeVals[P2[0][1]] = [P2[0][0], varsP2, P2[0][3]];
-   }
-}
-
-// Used to sort elements in a triangle
-// Y should be less or X should be less if Y is the same
-isPosAboveInTri = function(P1, P2)
-{
-   if (P1[1] < P2[1])
-   {
-      return true;
-   }
-   else if (P1[1] == P2[1])
-   {
-      return (P1[0] < P2[0]);
-   }
-   else
-   {
-      return false;
-   }
-}
-
-checkOrderAndSwapIfNeeded = function(vertArray, orderedIndex, leftIndex, rightIndex)
-{
-   if (!isPosAboveInTri(vertArray[orderedIndex[leftIndex]][0],
-                        vertArray[orderedIndex[rightIndex]][0]))
-   {
-      var temp = orderedIndex[leftIndex];
-      orderedIndex[leftIndex] = orderedIndex[rightIndex];
-      orderedIndex[rightIndex] = temp;
-      return true;
-   }
-   else
-   {
-      return false;
-   }
-}
-
-// drawLineOnSide
-//   draw a line and stores the values [x, varying] at each y value
-// For lines on the left side of the triangle,
-// we want to draw the line such that the last values placed in the
-// storeVals array are the ones with the greatest x value.
-// For lines on the right side, we want to draw the line so that the
-// values placed in the storeVals array are the ones with the smallest x value.
-// To do that, we may need to flip the order of P1 and P2.
-// side tells us whether we are on the left or right side:
-// side is +1 on the left side and -1 on the right side
-RenderEngine.prototype.drawLineOnSide = function(P1, P2, fragmentShader,
-                                                 storeVals, side)
-{
-   var dX = P2[0][0] - P1[0][0];
-   if (dX * side < 0)
-   {
-      // The points are in the wrong order
-      this.drawLine(P2, P1, fragmentShader, storeVals);
-   }
-   else
-   {
-      // The points are in the right order
-      this.drawLine(P1, P2, fragmentShader, storeVals);
-   }
-}
-
-RenderEngine.prototype.drawTriangle = function(vertArray, fragmentShader)
-{
-   // ASSERT: We know the 3 points are not on a line,
-   // so they must have different Y values 
-   // Order the three verts from top to bottom
-   var orderedIndex = [0, 1, 2];
-   checkOrderAndSwapIfNeeded(vertArray, orderedIndex, 0, 1);
-   if (checkOrderAndSwapIfNeeded(vertArray, orderedIndex, 1, 2))
-   {
-      // Only check again if we needed to swap the second one
-      checkOrderAndSwapIfNeeded(vertArray, orderedIndex, 0, 1);
-   }
-   
-   // Hold on to position and varying values from
-   // the left side and the right side
-   var leftHold = new Array();
-   var rightHold = new Array();
-   
-   // We need to draw all three lines, either on the left side or on the right side
-   var top = vertArray[orderedIndex[0]][0];
-   var mid = vertArray[orderedIndex[1]][0];
-   var bottom = vertArray[orderedIndex[2]][0];
-   var tY = (mid[1] - top[1]) / (bottom[1] - top[1]);
-   var interceptX = lerp(top[0], bottom[0], tY);
-   if (mid[0] < interceptX)
-   {
-      // The middle point is on the left, draw 2 lines on the left and one on the right
-      this.drawLineOnSide(vertArray[orderedIndex[0]],
-                          vertArray[orderedIndex[1]],
-                          fragmentShader, leftHold, +1);
-      this.drawLineOnSide(vertArray[orderedIndex[1]],
-                          vertArray[orderedIndex[2]],
-                          fragmentShader, leftHold, +1);
-      this.drawLineOnSide(vertArray[orderedIndex[0]],
-                          vertArray[orderedIndex[2]],
-                          fragmentShader, rightHold, -1);
-   }
-   else
-   {
-      // The middle point is on the right, draw 2 lines on the right and one on the left
-      this.drawLineOnSide(vertArray[orderedIndex[0]],
-                          vertArray[orderedIndex[1]],
-                          fragmentShader, rightHold, -1);
-      this.drawLineOnSide(vertArray[orderedIndex[1]],
-                          vertArray[orderedIndex[2]],
-                          fragmentShader, rightHold, -1);
-      this.drawLineOnSide(vertArray[orderedIndex[0]],
-                          vertArray[orderedIndex[2]],
-                          fragmentShader, leftHold, +1);
-   }
-   
-   // Now we can fill in the scanlines between the left and right sides
-   var topY = top[1];
-   var bottomY = bottom[1];
-   var varyingVars = new Array();
-   
-   // We will not need to do the top or bottom scanlines, they should already be done
-   for (var y = topY + 1; y < bottomY; y++)
-   {
-      var leftX = leftHold[y][0];
-      var rightX = rightHold[y][0];
-      if (rightX > leftX + 1)
-      {
-         // We only need to do something if there is space between the two
-         // Note that we COULD just draw a line here,
-         // but since we know we are on scan lines we can optimize a bit.
-         var scanLine = this.renderBuffer.getScanLine(y);         
-         var leftVars = leftHold[y][1];
-         var rightVars = rightHold[y][1];
-         var incT = 1 / (rightX - leftX);
-         var tX = incT;
-
-         // Use this little tool for finding a special t for w
-         var twFind = new TwFinder(leftHold[y][2], rightHold[y][2]);
-         for (var x = leftX + 1; x < rightX; x++)
-         {
-            // Adjust t for depth for the color interpolations
-            var tW = twFind.findT(tX)[0];          
-
-            // Find the varying values
-            for (var j = 0; j < leftVars.length; j++)
-            {
-               varyingVars[j] = lerp(leftVars[j], rightVars[j], tW);
-            }
-            
-            tX += incT;
-               
-            // Get color from the fragment shader with these interpolated values
-            var color = fragmentShader.main(varyingVars);
-            
-            // Finally set the pixel
-            this.renderBuffer.setPixel(x, y, varyingVars);
-         }
-      }
-   }
+   // Draw the 2 end-points
+   this.renderBuffer.setPixel(P1[0][0], P1[0][1], fragmentShader.main(P1[1]));
+   this.renderBuffer.setPixel(P2[0][0], P2[0][1], fragmentShader.main(P2[1]));
 }
 
 RenderEngine.prototype.processVerts = function(verts, vertexShader,
@@ -296,7 +55,7 @@ RenderEngine.prototype.processVerts = function(verts, vertexShader,
    // Walk through the vertex shader for every vertex and keep the values
    for (var i = 0; i < verts.length; i++)
    {
-      // Push the NDC coordinates and the smooth variables for each 
+      // Push the NDC coordinates and the smooth variables for each
       translatedVerts.push(this.ndc2screen(vertexShader.main(verts[i])));
       varyingVars.push(vertexShader.getSmoothVars(verts[i]));
    }
@@ -336,6 +95,97 @@ RenderEngine.prototype.checkDrawTriangle = function(vertArray, winding,
    {
       this.drawTriangle(vertArray, fragmentShader);
    }
+}
+
+RenderEngine.prototype.sortTriangle = function(vertArray)
+{
+   var low;
+   var high;
+   var mid = vertArray[2];
+
+   if (vertArray[0][0][1] <= vertArray[1][0][1])
+   {
+      low = vertArray[0];
+      high = vertArray[1];
+   }
+   else
+   {
+      low = vertArray[1];
+      high = vertArray[0];
+   }
+
+   if (low[0][1] > vertArray[2][0][1])
+   {
+      mid = low;
+      low = vertArray[2];
+   }
+   else if (high[0][1] <= vertArray[2][0][1])
+   {
+      mid = high;
+      high = vertArray[2];
+   }
+    
+   vertArray[0] = low;
+   vertArray[1] = mid;
+   vertArray[2] = high;
+}
+
+RenderEngine.prototype.drawTriangle = function(vertArray, fragmentShader)
+{
+   var lineL;
+   var lineS;
+   var pointL;
+   var pointS;
+   var maxDistL;
+   var maxDist1;
+   var maxDist2;
+
+   this.sortTriangle(vertArray);
+
+   lineL = new Line(vertArray[0], vertArray[2], fragmentShader);
+   lineS = new Line(vertArray[0], vertArray[1], fragmentShader);
+
+   maxDistL = lineL.getMaxDist();
+   maxDist1 = lineS.getMaxDist();
+   maxDist2 = Math.max(Math.abs(vertArray[1][0][0] -
+                                vertArray[2][0][0]),
+                       Math.abs(vertArray[1][0][1] -
+                                vertArray[2][0][1]));
+
+   if (maxDistL > 1 && maxDist1 > 1 && maxDist2 > 1)
+   {
+      // loop through pixels of the large line
+      for (var i = 1; i <= maxDistL; i++)
+      {
+         pointL = lineL.nextPoint();
+         // loop through pixels of the small line until the y value of the
+         // large line is reached
+         while (lineS.getY() < lineL.getY())
+         {
+            // if the end of the first small line is reached,
+            // switch to second small line
+            if (lineS.getEOL() == true)
+            {
+               lineS = new Line(vertArray[1], vertArray[2], fragmentShader);
+            }
+
+            pointS = lineS.nextPoint();
+            this.renderBuffer.setPixel(pointS[0][0], pointS[0][1], pointS[1]);
+         }
+
+         // takes the two points found (with equal y values) on the screen
+         // and displays them using drawLine()
+         this.drawLine(pointL, pointS, fragmentShader);
+      }
+   }
+
+   // display the three vertices of the triangle using setPixel()
+   this.renderBuffer.setPixel(vertArray[0][0][0], vertArray[0][0][1],
+                              fragmentShader.main(vertArray[0][1]));
+   this.renderBuffer.setPixel(vertArray[1][0][0], vertArray[1][0][1],
+                              fragmentShader.main(vertArray[1][1]));
+   this.renderBuffer.setPixel(vertArray[2][0][0], vertArray[2][0][1],
+                              fragmentShader.main(vertArray[2][1]));
 }
 
 var clockwiseWinding = -1;
