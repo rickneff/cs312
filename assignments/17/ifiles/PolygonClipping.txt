@@ -1,0 +1,104 @@
+
+How should we clip polygons against a plane?
+
+Let's define a polygon as a vertex list of length 3 or more.
+
+The process may turn a 3-list into a 4-list, or a 5-list, or a 6-list.
+
+It depends on how many planes an original triangle "pierces" with its
+sharp points.
+
+The function implementing this process, call it clipPolygonAgainstPlane,
+first checks to see if there are any vertices remaining. If the length
+of the polygon (vertex list) is zero, it just returns that empty polygon.
+
+Next, create an empty "remaining polygon" list. This list will be
+populated, and will be what's returned from this function to its
+caller, clipPolygon. (The clipPolygon function calls
+clipPolygonAgainstPlane for each of the six clip planes, relay passing
+and returning the remaining polygon list.)
+
+To populate the remaining polygon, we have to start somewhere, so
+start with the first vertex, and ask if it is in or out.
+
+If it was in (pointInPlane > 0) this vertex is good to draw, so push
+it on the remaining polygon list.
+
+The next part is tricky. Pseudocode --- begone! This calls for REAL code!
+
+   for (var vertIdx = 1; vertIdx <= poly.length; vertIdx++)
+   {
+      var isIn = (plane.pointInPlane(poly[vertIdx % poly.length][0]) > 0);
+      if (wasIn)
+      {
+         if (isIn)
+         {
+            // do not add 0 twice
+            if (vertIdx != poly.length)
+            {
+               // This vertex is good to draw
+               remainingPoly.push(poly[vertIdx]);
+            }
+         }
+         else
+         {
+            // We are going from in to out, find the intersection and add that
+            remainingPoly.push(findIntersectVertex(plane, poly[vertIdx - 1],
+                                                   poly[vertIdx % poly.length]));
+         }
+      }
+      else
+      {
+         // The last point was NOT in
+         if (isIn)
+         {
+            // Do the intersection first
+            remainingPoly.push(findIntersectVertex(plane, poly[vertIdx - 1],
+                                                   poly[vertIdx % poly.length]));
+
+            // Then add the new point, only do not add 0 twice
+            if (vertIdx != poly.length)
+            {
+               // This vertex is good to draw
+               remainingPoly.push(poly[vertIdx]);
+            }
+         }
+      }
+
+      // Ready for the next iteration
+      wasIn = isIn;
+   }
+
+Who calls clipPolygon? The checkDrawTriangle function. It passes its
+vertArray argument to clipPolygon and then iterates through the vertex
+list returned. If the list is empty, everything was clipped away and
+nothing is left to draw. So just iterate through the list, and if you
+do it in a single efficient for loop, the loop will never be entered
+for an empty list.
+
+The body of the loop creates a triangle (converting ndc2screen at this
+time) and determines if this triangle should be drawn at all using the
+vectorSubtract/vectorCross means as before.
+
+Each triangle consists of points A, B and C, identified in the 6-vertex
+case as follows:
+
+			             /\
+			          0 /  \ 1
+ Iteration  A   B   C  	        ___.____.__________________
++---------+---+---+---+	       |  /      \                 |
+|   1     | 0 | 1 | 2 |	       | /        \                |
+|   2     | 0 | 2 | 3 |	       |/          \               |
+|   3     | 0 | 3 | 4 |	     5 .            \              |
+|   4     | 0 | 4 | 5 |	      /|             \             |
++---------+---+---+---+	      *.              \            |
+			     4 | *_            \           |
+			       |    *_          \ 2        |
+			       |_______*.________._________|
+			               3  *_      \
+			                     *_    \
+			                        *_  \
+			                           *_\
+
+You determine what A, B and C should be in the 5-vertex, 4-vertex, and
+3-vertex cases.
