@@ -30,5 +30,11 @@ Here are some helpful references found by Brother Pingry along with previous mem
 * Another WebGL tutorial, most importantly, this one has some error handling examples: [http://dev.opera.com/articles/view/raw-webgl-part1-getting-started/](http://dev.opera.com/articles/view/raw-webgl-part1-getting-started/)
 * An excellent reference on soft shadows: [http://codeflow.org/entries/2013/feb/15/soft-shadow-mapping/](http://codeflow.org/entries/2013/feb/15/soft-shadow-mapping/)
 * Great Earth and Moon texture maps: [http://planetpixelemporium.com/earth.html](http://planetpixelemporium.com/earth.html)
-* The OpenGL SuperBible is a great reference. Here is the home page, and you can download all of the source code, which is quite instructive. He wraps up many of his tutorials using his own helper libraries. Some of the most valuable learning actually comes from breaking apart his helper library source code: [http://www.starstonesoftware.com/OpenGL/](http://www.starstonesoftware.com/OpenGL/)
-* Here is a simple shader based C++ program that uses SDL as a windowing library: [CPP_SDL_SHADER_EXAMPLE.zip](CPP_SDL_SHADER_EXAMPLE.zip)
+* The OpenGL SuperBible is a great reference. Here is the home page, and you can download all of the source code, which is quite instructive. He wraps up many of his tutorials using his own helper libraries. Some of the most valuable learning actually comes from breaking apart his helper library source code: [http://www.starstonesoftware.com/OpenGL/](http://www.starstonesoftware.com/OpenGL/) CAUTION: Use Windows if you go this route. It's currently not working for Macs.
+* Here is a simple shader based C++ program that uses SDL as a windowing library: [CPP_SDL_SHADER_EXAMPLE.zip](contrib/CPP_SDL_SHADER_EXAMPLE.zip)
+
+## Project Ideas
+
+Here are a [few ideas from projects](info/ProjectIdeas.md) former students have done. This will be updated as more former student chime in.
+
+
