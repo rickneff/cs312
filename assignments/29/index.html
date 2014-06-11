@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="MatrixMath.js" type="text/javascript"></script>
+    <script src="Quaternion.js" type="text/javascript"></script>
+    <script src="ProjectionMatrix.js" type="text/javascript"></script>
+    <script src="WebGL.js" type="text/javascript"></script>
+    <script src="ShaderProgram.js" type="text/javascript"></script>
+    <script src="ModelDrawer.js" type="text/javascript"></script>
+    <script src="Sphere.js" type="text/javascript"></script>
+    <script src="XForm.js" type="text/javascript"></script>
+
+    <script id="VertexShader" type="x-shader/x-vertex">
+      precision highp float;
+
+      attribute vec3 vertPosition;
+      attribute vec3 vertNormal;
+      attribute vec2 vertTxtCoord;
+
+      uniform mat4 MVmat;
+      uniform mat4 PROJmat;
+      uniform vec4 lightViewPos;
+
+      varying vec2 textureCoord;
+      varying vec3 normalDir;
+      varying vec3 cameraDir;
+      varying vec3 lightDir;
+
+      void main(void)
+      {
+        vec4 vertViewPos = MVmat * vec4(vertPosition, 1.0);
+        gl_Position = PROJmat * vertViewPos;
+        textureCoord = vertTxtCoord;
+
+        normalDir = ((MVmat * vec4(vertPosition+vertNormal, 1.0)) - vertViewPos).xyz;
+
+        // handle light position, point light or distant light?
+        if (lightViewPos.w == 1.0)
+        {
+          lightDir = normalize((lightViewPos - vertViewPos).xyz);
+        }
+        else
+        {
+          lightDir = normalize(lightViewPos.xyz);
+        }
+
+        cameraDir = normalize(-vertViewPos.xyz); // Points back towards the camera
+      }
+    </script>
+
+    <script id="FragmentShader" type="x-shader/x-fragment">
+      precision highp float;
+
+      varying vec2 textureCoord;
+      varying vec3 normalDir;
+      varying vec3 cameraDir;
+      varying vec3 lightDir;
+
+      uniform sampler2D diffuseImage;
+      uniform sampler2D ambientImage;
+      uniform sampler2D specularImage;
+
+      vec4 calculateDiffuseColor(vec3 lightDir, vec3 normalDir)
+      {
+        vec4 diffuseColor = texture2D(diffuseImage, textureCoord);
+        vec4 ambientColor = texture2D(ambientImage, textureCoord);
+        float diffuseAmt = max(0.0, dot(lightDir, normalDir));
+        vec4 color = vec4(mix(ambientColor.rgb, diffuseColor.rgb, diffuseAmt), diffuseColor.a);
+        return color;
+      }
+
+      vec3 calculateSpecular(vec3 lightDir, vec3 normalDir, vec3 cameraDir)
+      {
+        vec3 reflection = reflect(-lightDir, normalDir);
+        float reflAngle = max(0.0, dot(reflection, cameraDir));
+        vec3 specColor = texture2D(specularImage, textureCoord).rgb;
+        float shininess = specColor.r * 50.0;
+        float fSpec = pow(reflAngle, shininess);
+        return specColor * fSpec; // assuming a white light
+      }
+
+      void main(void)
+      {
+        vec4 diffuse = calculateDiffuseColor(normalize(lightDir), normalize(normalDir));
+        vec3 specular = calculateSpecular(normalize(lightDir), normalize(normalDir), normalize(cameraDir));
+        gl_FragColor = vec4(diffuse.rgb + specular, diffuse.a);
+      }
+    </script>
+
+    <script>
+      //This will hold our WebGL variable
+      var webGL;
+      var shaderProgram;
+      var globe;
+      var startTime;
+      var lightPos_Global;
+      var viewMat;
+
+      // This stuff is pretty closely tied to our shaders, so I want to keep the code close by
+      function createShaderProgram()
+      {
+        shaderProgram = new ShaderProgram(webGL.GL, "VertexShader", "FragmentShader");
+        shaderProgram.MVmat_pos = shaderProgram.findUniform("MVmat");
+        shaderProgram.PROJmat_pos = shaderProgram.findUniform("PROJmat");
+        shaderProgram.vertPos_buff = shaderProgram.createArrayBuffer("vertPosition", 3);
+        shaderProgram.normal_buff = shaderProgram.createArrayBuffer("vertNormal", 3);
+        shaderProgram.textureCoord_buff = shaderProgram.createArrayBuffer("vertTxtCoord", 2);
+        shaderProgram.elements_buff = shaderProgram.createElementBuffer();
+        shaderProgram.lightViewPos_pos = shaderProgram.findUniform("lightViewPos");
+
+        // SET The diffuse Sampler in the fragment shader to use slot 0
+        webGL.GL.uniform1i(webGL.GL.getUniformLocation(shaderProgram.shaderProgram, "diffuseImage"), 0);
+
+        // SET The ambient Sampler in the fragment shader to use slot 1
+        webGL.GL.uniform1i(webGL.GL.getUniformLocation(shaderProgram.shaderProgram, "ambientImage"), 1);
+
+        // SET The specular Sampler in the fragment shader to use slot 2
+        webGL.GL.uniform1i(webGL.GL.getUniformLocation(shaderProgram.shaderProgram, "specularImage"), 2);
+      }
+
+      function drawFrame()
+      {
+        // clear every frame
+        webGL.GL.clear(webGL.GL.COLOR_BUFFER_BIT | webGL.GL.DEPTH_BUFFER_BIT); // the color buffer bit and the depth buffer bit
+
+        // we have a timer
+        var elapsedTime = new Date().getTime() - startTime;
+
+        // Where is the camera?
+        viewMat = TranslateMatrix(0, 0, -5);
+
+        // Set up the light
+        var LightPos_View = lightPos_Global; // matrixXvector(viewMat, lightPos_Global);
+        webGL.GL.uniform4f(shaderProgram.lightViewPos_pos,
+                           LightPos_View[0], LightPos_View[1], LightPos_View[2], LightPos_View[3]);
+
+        // spin
+        var spinAmount = elapsedTime / 4000;  // 1 radian per 4 seconds
+        globe.xForm.rot = getQuaternionFromHPR(-spinAmount, 0, 0);
+
+        globe.draw(viewMat);
+      }
+
+      // setup our own webGL window one time, with things like its background color
+      // we can also create our scene here that we will draw each frame
+      function onLoaded()
+      {
+        webGL = new WebGL("GLCanvas", [0.05, 0, 0.15, 1]);
+        if (webGL.GL)
+        {
+          createShaderProgram();
+          lightPos_Global = [-10, +6, +4, 1];
+          shaderProgram.setProjectionMat(PerspectiveProjectionWithAspectRatio(webGL.aspectRatio, 30, 0.1, 100));
+
+          var globeModel = new ModelDrawer(new Sphere(18, 24), shaderProgram);
+          globe = new Group(globeModel);
+
+          var worldImage = new Image();
+          worldImage.onload = function()
+          {
+            globeModel.setDiffuseImage(worldImage, webGL);
+          }
+          worldImage.src = "earthmap1k.jpg";
+
+          var nightImage = new Image();
+          nightImage.onload = function()
+          {
+            globeModel.setAmbientImage(nightImage, webGL);
+          }
+          nightImage.src = "earthlights1k.jpg";
+
+          var specImage = new Image();
+          specImage.onload = function()
+          {
+            globeModel.setSpecularImage(specImage, webGL);
+          }
+          specImage.src = "earthspec1k.jpg";
+
+          // drawFrame @ 60 hz.
+          startTime = new Date().getTime();
+          setInterval(drawFrame, 16);
+        }
+      }
+
+    </script>
+  </head>
+  <body onload="onLoaded()" >
+    <canvas id="GLCanvas" width="900" height="600">
+      Your Browser Doesn't Support HTML5's Canvas.
+    </canvas>
+  </body>
+</html>
