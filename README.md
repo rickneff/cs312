@@ -33,8 +33,9 @@ Here are some helpful references found by Brother Pingry along with previous mem
 * The OpenGL SuperBible is a great reference. Here is the home page, and you can download all of the source code, which is quite instructive. He wraps up many of his tutorials using his own helper libraries. Some of the most valuable learning actually comes from breaking apart his helper library source code: [http://www.starstonesoftware.com/OpenGL/](http://www.starstonesoftware.com/OpenGL/) CAUTION: Use Windows if you go this route. It's currently not working for Macs.
 * Here is a simple shader based C++ program that uses SDL as a windowing library: [CPP_SDL_SHADER_EXAMPLE.zip](contrib/CPP_SDL_SHADER_EXAMPLE.zip)
 * Here is a link to the PowerPoint presented in class: [OpenGL Transformations and Projections](http://coitweb.uncc.edu/~krs/courses/3050/lectures/OpenGL_xforms.ppt)
+
 ## Project Ideas
 
 Here are a [few ideas from projects](info/ProjectIdeas.md) former students have done. This will be updated as more former student chime in.
 
-
+Here are some [More Cool Links](info/MoreCoolLinks.md) from class on 6/25/2014.
