@@ -39,3 +39,5 @@ Here are some helpful references found by Brother Pingry along with previous mem
 Here are a [few ideas from projects](info/ProjectIdeas.md) former students have done. This will be updated as more former student chime in.
 
 Here are some [More Cool Links](info/MoreCoolLinks.md) from class on 6/25/2014.
+
+Here is the [Poster Template](info/PosterTemplate.pptx).
